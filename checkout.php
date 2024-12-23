@@ -38,7 +38,7 @@ foreach ($_SESSION['cart'] as $item) {
     <div class="row">
         <div class="col-md-8 mx-auto">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-success text-white">
                     <h2 class="mb-0">Thông tin đặt hàng</h2>
                 </div>
                 <div class="card-body">
@@ -71,11 +71,11 @@ foreach ($_SESSION['cart'] as $item) {
                             </select>
                         </div>
 
-                        <div class="alert alert-info">
+                        <div class="alert alert-success">
                             <strong>Tổng tiền:</strong> <?php echo number_format($total_amount, 0, ',', '.'); ?> đ
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Đặt hàng</button>
+                        <button type="submit" class="btn btn-success">Đặt hàng</button>
                     </form>
                 </div>
             </div>

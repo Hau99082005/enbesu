@@ -2,35 +2,34 @@
 ob_start();
 require_once 'inc/database.php';
 
-
+// Khởi động session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-
+// Kiểm tra người dùng đã đăng nhập chưa
 if (!isset($_SESSION['user'])) {
     die('Vui lòng đăng nhập để xem đơn hàng.');
 }
 $user_id = $_SESSION['user']['id'];
 
-
+// Xử lý hủy đơn hàng
 if (isset($_POST['cancel_order']) && isset($_POST['order_id'])) {
     $order_id = $_POST['order_id'];
-    
-   
+
+    // Kiểm tra trạng thái đơn hàng có phải 'Pending' không
     $check_query = "SELECT status FROM orders WHERE id = ? AND user_id = ? AND status = 'Pending'";
     $db = Database::getConnection();
     $check_stmt = $db->prepare($check_query);
     $check_stmt->bind_param('ii', $order_id, $user_id);
     $check_stmt->execute();
     $check_result = $check_stmt->get_result();
-    
+
     if ($check_result->num_rows > 0) {
-      
         $update_query = "UPDATE orders SET status = 'Cancelled' WHERE id = ?";
         $update_stmt = $db->prepare($update_query);
         $update_stmt->bind_param('i', $order_id);
-        
+
         if ($update_stmt->execute()) {
             $_SESSION['message'] = 'Hủy đơn hàng thành công';
             $_SESSION['message_type'] = 'success';
@@ -39,8 +38,6 @@ if (isset($_POST['cancel_order']) && isset($_POST['order_id'])) {
             $_SESSION['message_type'] = 'danger';
         }
     }
-    
-   
     header('Location: order.php');
     exit();
 }
@@ -50,19 +47,38 @@ _navbar();
 
 $db = Database::getConnection();
 
-
-$query = "SELECT o.id, o.customer_name, o.customer_address, o.customer_phone, 
-                 o.total_amount, o.created_at, o.status, o.payment_method, o.payment_status
-          FROM orders o 
-          WHERE o.user_id = ? 
-          ORDER BY o.created_at DESC";
+// Truy vấn danh sách đơn hàng kèm tên sản phẩm
+$query = "
+SELECT 
+    o.id, 
+    o.customer_name, 
+    o.customer_address, 
+    o.customer_phone, 
+    o.total_amount, 
+    o.created_at, 
+    o.status, 
+    o.payment_method, 
+    o.payment_status,
+    GROUP_CONCAT(p.name SEPARATOR ', ') AS product_names
+FROM 
+    orders o
+LEFT JOIN 
+    order_items oi ON o.id = oi.order_id
+LEFT JOIN 
+    products p ON oi.product_id = p.id
+WHERE 
+    o.user_id = ?
+GROUP BY 
+    o.id
+ORDER BY 
+    o.created_at DESC";
 
 $stmt = $db->prepare($query);
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-
+// Thông báo khi có hủy đơn hàng
 if (isset($_SESSION['message'])) {
     echo '<div class="container mt-3">
             <div class="alert alert-' . $_SESSION['message_type'] . ' alert-dismissible fade show" role="alert">
@@ -74,12 +90,13 @@ if (isset($_SESSION['message'])) {
     unset($_SESSION['message_type']);
 }
 
+// Hiển thị danh sách đơn hàng
 echo '
-<div class="container mt-5 mb-5">
+<div class="container mt-lg-auto">
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-success text-white">
                     <h2 class="mb-0">Đơn hàng của tôi</h2>
                 </div>
                 <div class="card-body">
@@ -92,17 +109,19 @@ echo '
                                     <th scope="col">Họ tên</th>
                                     <th scope="col">Địa chỉ</th>
                                     <th scope="col">Số điện thoại</th>
+                                    <th scope="col">Sản phẩm</th>
                                     <th scope="col">Tổng tiền</th>
                                     <th scope="col">Phương thức</th>
-                                    <th scope="col">Trạng thái TT</th>
-                                    <th scope="col">Trạng thái ĐH</th>
+                                    <th scope="col">Trạng thái Thanh Toán</th>
+                                    <th scope="col">Trạng thái Đặt Hàng</th>
                                     <th scope="col">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>';
 
+// Vòng lặp hiển thị dữ liệu đơn hàng
 while ($row = $result->fetch_assoc()) {
-  
+    // Xử lý trạng thái đơn hàng
     $statusClass = '';
     $displayStatus = '';
     switch($row['status']) {
@@ -123,7 +142,7 @@ while ($row = $result->fetch_assoc()) {
             $displayStatus = $row['status'];
     }
 
- 
+    // Xử lý trạng thái thanh toán
     $payment_status_class = '';
     switch($row['payment_status']) {
         case 'Đã thanh toán':
@@ -136,18 +155,21 @@ while ($row = $result->fetch_assoc()) {
             $payment_status_class = 'badge bg-secondary';
     }
 
+    // Hiển thị thông tin từng đơn hàng
     echo '<tr>
         <td>' . $row['id'] . '</td>
         <td>' . date('d/m/Y H:i', strtotime($row['created_at'])) . '</td>
         <td>' . htmlspecialchars($row['customer_name']) . '</td>
         <td>' . htmlspecialchars($row['customer_address']) . '</td>
         <td>' . htmlspecialchars($row['customer_phone']) . '</td>
+        <td>' . htmlspecialchars($row['product_names']) . '</td>
         <td><strong class="text-success">' . number_format($row['total_amount'], 0, ',', '.') . ' đ</strong></td>
         <td>' . $row['payment_method'] . '</td>
         <td><span class="' . $payment_status_class . '">' . $row['payment_status'] . '</span></td>
         <td><span class="' . $statusClass . '">' . $displayStatus . '</span></td>
         <td>';
-  
+    
+    // Hiển thị nút hủy và chi tiết
     if ($row['status'] === 'Pending' && $row['payment_status'] === 'Chưa thanh toán') {
         echo '<div class="btn-group" role="group">
                 <form action="cancel_order.php" method="POST" class="d-inline" 
@@ -170,8 +192,9 @@ while ($row = $result->fetch_assoc()) {
     </tr>';
 }
 
+// Nếu không có đơn hàng
 if ($result->num_rows == 0) {
-    echo '<tr><td colspan="10" class="text-center">Bạn chưa có đơn hàng nào</td></tr>';
+    echo '<tr><td colspan="11" class="text-center">Bạn chưa có đơn hàng nào</td></tr>';
 }
 
 echo '
