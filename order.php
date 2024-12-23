@@ -159,14 +159,14 @@ while ($row = $result->fetch_assoc()) {
     echo '<tr>
         <td>' . $row['id'] . '</td>
         <td>' . date('d/m/Y H:i', strtotime($row['created_at'])) . '</td>
-        <td>' . htmlspecialchars($row['customer_name']) . '</td>
-        <td>' . htmlspecialchars($row['customer_address']) . '</td>
-        <td>' . htmlspecialchars($row['customer_phone']) . '</td>
-        <td>' . htmlspecialchars($row['product_names']) . '</td>
+        <td>' . (isset($row['customer_name']) ? htmlspecialchars($row['customer_name']) : '') . '</td>
+        <td>' . (isset($row['customer_address']) ? htmlspecialchars($row['customer_address']) : '') . '</td>
+        <td>' . (isset($row['customer_phone']) ? htmlspecialchars($row['customer_phone']) : '') . '</td>
+        <td>' . (isset($row['product_names']) ? htmlspecialchars($row['product_names']) : '') . '</td>
         <td><strong class="text-success">' . number_format($row['total_amount'], 0, ',', '.') . ' đ</strong></td>
-        <td>' . $row['payment_method'] . '</td>
-        <td><span class="' . $payment_status_class . '">' . $row['payment_status'] . '</span></td>
-        <td><span class="' . $statusClass . '">' . $displayStatus . '</span></td>
+        <td>' . (isset($row['payment_method']) ? htmlspecialchars($row['payment_method']) : '') . '</td>
+        <td><span class="' . $payment_status_class . '">' . (isset($row['payment_status']) ? htmlspecialchars($row['payment_status']) : '') . '</span></td>
+        <td><span class="' . $statusClass . '">' . htmlspecialchars($displayStatus) . '</span></td>
         <td>';
     
     // Hiển thị nút hủy và chi tiết

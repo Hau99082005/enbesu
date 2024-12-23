@@ -1088,7 +1088,6 @@ function _checkout($titlecheckout) {
                             <span class="font-weight-bold text-danger">' . number_format($totalWithFee, 0, ',', '.') . '<sup>đ</sup></span>
                         </div>
                     </div>
-                    <a href="thanhtoanmomo.php" class="btn btn-success btn-block mt-4">Thanh toán qua MoMo</a>
                 </div>
             </div>
         </div>
