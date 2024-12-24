@@ -49,9 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'note' => $note
     ];
 
-    if ($payment_method === 'momo') {
-        header('Location: thanhtoanmomo.php');
-        exit();
     } else {
         $db = Database::getConnection();
         $user_id = $_SESSION['user']['id'];

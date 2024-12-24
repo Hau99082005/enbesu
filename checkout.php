@@ -33,7 +33,6 @@ foreach ($_SESSION['cart'] as $item) {
     }
 }
 ?>
-
 <div class="container mt-5 mb-5">
     <div class="row">
         <div class="col-md-8 mx-auto">
@@ -67,7 +66,6 @@ foreach ($_SESSION['cart'] as $item) {
                             <label for="payment_method">Phương thức thanh toán *</label>
                             <select name="payment_method" id="payment_method" class="form-control" required>
                                 <option value="cod">Thanh toán khi nhận hàng</option>
-                                <option value="momo">Thanh toán qua MoMo</option>
                             </select>
                         </div>
 
